@@ -153,8 +153,10 @@ export const avatarVideos = (id) => (state.tutorVids && state.tutorVids[id]) || 
 export async function generateTutorVideos(onProgress, id = getSettings().avatar) {
   if (!hasGeminiKey()) return { ok: false, error: 'Inserisci la chiave Gemini.' };
   const gs = avatarSet(id);
-  if (!gs || !gs.closed) return { ok: false, error: 'Crea prima il tutor con Gemini.' };
-  const refBlob = await getImage(gs.closed);
+  if (id !== 'sofia' && (!gs || !gs.closed)) return { ok: false, error: 'Crea prima il tutor con Gemini.' };
+  let refBlob = null;
+  if (id === 'sofia') { try { const rr = await fetch('assets/sofia.png'); refBlob = rr.ok ? await rr.blob() : null; } catch (e) { refBlob = null; } }
+  else refBlob = await getImage(gs.closed);
   const still = { ok: !!refBlob, blob: refBlob, error: 'Immagine del tutor non trovata.' };
   if (!still.ok) return { ok: false, error: still.error };
   const set = {};
