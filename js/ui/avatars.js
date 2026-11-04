@@ -1,5 +1,6 @@
 /* Tutor disegnati: sette personaggi tra cui scegliere. Ogni disegno ha bocca chiusa/aperta/sorriso/pensiero. */
 export const AVATARS = [
+  { id: 'sofia', name: 'Sofia', group: 'Umani', kind: 'photo', photo: 'assets/sofia.png', bg: ['#E9E6E1'] },
   { id: 'marco', name: 'Marco', group: 'Umani', kind: 'human', bg: ['#DDE3EA'], skin: '#E7BE9C', skinD: '#D2A07C', hair: '#8A8F98', hairStyle: 'short', glasses: 'square', outfit: '#2B3A55', collar: '#F2F3F5' },
   { id: 'anna', name: 'Anna', group: 'Umani', kind: 'human', bg: ['#E6DFD8'], skin: '#EBC4A4', skinD: '#D6A682', hair: '#3A2A22', hairStyle: 'long', glasses: 'none', outfit: '#7A3B4A', collar: '#F2F3F5', lashes: true },
   { id: 'john', name: 'John', group: 'Umani', kind: 'human', bg: ['#DAE2DC'], skin: '#F0CBAA', skinD: '#DBAC87', hair: '#5B4636', hairStyle: 'short', glasses: 'none', outfit: '#4A5560', collar: '#F2F3F5', beard: '#5B4636' },
@@ -233,8 +234,33 @@ function mono(a, name) {
   <path class="m m-oops" style="display:none" d="M80 156q20-14 40 0"/>
   <path class="m m-think" style="display:none" d="M86 150h4M98 150h4M110 150h4"/></g>`;
 }
+
+/** foto con animazioni disegnate sopra: bocca che parla, battito di ciglia, sopracciglia, broncio */
+function photo(a) {
+  const skin = '#EDB79B', lip = '#C96F73', dark = '#5A2A30';
+  return `
+  <defs><filter id="soft-${a.id}" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="1.1"/></filter></defs>
+  <rect width="200" height="200" fill="${a.bg[0]}"/>
+  <g class="head">
+    <image href="${a.photo}" width="200" height="200" preserveAspectRatio="xMidYMid slice"/>
+    <g class="ph-lids" filter="url(#soft-${a.id})"><ellipse cx="84" cy="62" rx="9.5" ry="5.2" fill="${skin}"/><ellipse cx="112" cy="58.5" rx="9.5" ry="5.2" fill="${skin}"/>
+      <path d="M75 63q9 4 18 0M103 59.5q9 4 18 0" fill="none" stroke="#4B3328" stroke-width="1.2" stroke-linecap="round"/></g>
+    <path class="m m-closed" d="M0 0" fill="none"/>
+    <g class="m m-open" style="display:none"><ellipse cx="102" cy="91" rx="14.5" ry="6.5" fill="${skin}" filter="url(#soft-${a.id})"/>
+      <path d="M90 89q12 -3 24 -2q-1 11 -12 11.5t-12 -9.5z" fill="${dark}"/><path d="M95 94.5q7 -4 14 0q-3 3.5 -7 3.5t-7 -3.5z" fill="#B8505A"/>
+      <path d="M90 89q12 -3 24 -2" fill="none" stroke="${lip}" stroke-width="2.2" stroke-linecap="round"/><path d="M92 97q10 5 20 0" fill="none" stroke="${lip}" stroke-width="2.2" stroke-linecap="round"/></g>
+    <g class="m m-happy" style="display:none"><ellipse cx="102" cy="91" rx="16" ry="7.5" fill="${skin}" filter="url(#soft-${a.id})"/>
+      <path d="M88 88.5q14 -4 28 -1q-2 13 -14 13t-14 -12z" fill="${dark}"/><path d="M90 88.5q12 -3 24 -1v3.5q-12 2 -24 0z" fill="#fff"/><path d="M95 95q7 -4 14 0q-3 4 -7 4t-7 -4z" fill="#B8505A"/>
+      <path d="M88 88.5q14 -4 28 -1" fill="none" stroke="${lip}" stroke-width="2.2" stroke-linecap="round"/></g>
+    <path class="m m-think" style="display:none" d="M92 92q10 -3 20 0" fill="none" stroke="${lip}" stroke-width="2.6" stroke-linecap="round"/>
+    <g class="m m-oops" style="display:none"><ellipse cx="102" cy="91" rx="15" ry="6" fill="${skin}" filter="url(#soft-${a.id})"/>
+      <path d="M91 95q11 -9 22 -1" fill="none" stroke="${lip}" stroke-width="3" stroke-linecap="round"/>
+      <path d="M75 54.5L95 59.5M103 59L122 50.5" fill="none" stroke="#5F4030" stroke-width="3.2" stroke-linecap="round" filter="url(#soft-${a.id})"/></g>
+  </g>`;
+}
+
 export function avatarSVG(id, name) {
   const a = avatarById(id);
-  const inner = a.kind === 'mono' ? mono(a, name) : a.kind === 'fox' ? fox(a) : a.kind === 'owl' ? owl(a) : a.kind === 'robot' ? robot(a) : a.kind === 'alien' ? alien(a) : a.kind === 'cyclops' ? cyclops(a) : a.kind === 'cat' ? cat(a) : a.kind === 'bear' ? bear(a) : a.kind === 'dragon' ? dragon(a) : a.kind === 'pip' ? pip(a) : a.kind === 'astro' ? astro(a) : human(a);
+  const inner = a.kind === 'photo' ? photo(a) : a.kind === 'mono' ? mono(a, name) : a.kind === 'fox' ? fox(a) : a.kind === 'owl' ? owl(a) : a.kind === 'robot' ? robot(a) : a.kind === 'alien' ? alien(a) : a.kind === 'cyclops' ? cyclops(a) : a.kind === 'cat' ? cat(a) : a.kind === 'bear' ? bear(a) : a.kind === 'dragon' ? dragon(a) : a.kind === 'pip' ? pip(a) : a.kind === 'astro' ? astro(a) : human(a);
   return `<svg viewBox="0 0 200 200" class="tutor-svg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
 }

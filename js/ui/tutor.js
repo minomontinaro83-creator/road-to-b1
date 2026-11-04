@@ -69,6 +69,7 @@ export function createTutor({ size = 120, onTap } = {}) {
       const br = svg.querySelector('.brow');
       if (br) br.setAttribute('transform', mood === 'think' ? 'translate(0,-4)' : mood === 'happy' ? 'translate(0,-2)' : mood === 'oops' ? 'translate(0,3)' : '');
     }
+    if (svg) { svg.classList.toggle('nodding', mood === 'happy' && !open); svg.classList.toggle('displeased', mood === 'oops'); }
     box.classList.toggle('talking', !!open);
   }
 
@@ -130,7 +131,7 @@ export function avatarPicker(onPick) {
         grid.append(h('button', { class: 'av' + (getSettings().avatar === a.id ? ' on' : ''), type: 'button', 'aria-label': a.name, onclick: () => {
           setSettings({ avatar: a.id, tutorName: a.kind === 'mono' ? getSettings().tutorName : ({ gufo: 'Gufo', fox: 'Fox', bit: 'Bit', cosmo: 'Cosmo', orso: 'Bruno' })[a.id] || a.name });
           emit('avatar'); draw(); if (onPick) onPick(a);
-          if (getSettings().tutorAuto && getSettings().geminiKey && !avatarSet(a.id)) { toast('Creo ' + a.name + ' con Gemini…'); generateAvatarSet(a.id).then((r) => { toast(r.ok ? a.name + ' è pronto!' : 'Gemini: ' + r.error, r.ok ? undefined : 'err'); draw(); }); }
+          if (getSettings().tutorAuto && getSettings().geminiKey && !avatarSet(a.id) && a.kind !== 'photo') { toast('Creo ' + a.name + ' con Gemini…'); generateAvatarSet(a.id).then((r) => { toast(r.ok ? a.name + ' è pronto!' : 'Gemini: ' + r.error, r.ok ? undefined : 'err'); draw(); }); }
         } }, thumb, h('small', null, a.name)));
       });
       wrap.append(h('div', { class: 'f-label' }, g), grid);
