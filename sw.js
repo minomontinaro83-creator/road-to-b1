@@ -1,5 +1,5 @@
 /* Service worker: l'app funziona anche offline (ripasso e lettura). Rete prima, poi copia salvata. */
-const CACHE = 'rtb1-v11';
+const CACHE = 'rtb1-v12';
 const CORE = ['./', 'index.html', 'manifest.json', 'css/style.css', 'icon-192.png', 'icon-512.png', 'assets/sofia.png',
   'js/main.js', 'js/version.js', 'version.json', 'js/util.js', 'js/srs.js', 'js/levels.js', 'js/lexicon.js', 'js/lexicon-data.js', 'js/story.js', 'js/store.js', 'js/api.js', 'js/tts.js',
   'js/prompts.js', 'js/engine.js', 'js/cards.js', 'js/images.js', 'js/progress.js',
