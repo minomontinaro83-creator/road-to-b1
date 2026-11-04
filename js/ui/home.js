@@ -33,6 +33,21 @@ export function renderHome(host, nav) {
 
   if (getSettings().geminiKey && !avatarSet(getSettings().avatar) && !genStatus.busy) setTimeout(() => autoTutor(toast), 300);
 
+// Sofia in video (Gemini Veo, facoltativo e a pagamento)
+if (getSettings().avatar === 'sofia' && !avatarVideos('sofia')) {
+  const vbox = h('div'); host.append(vbox);
+  vbox.append(h('div', { class: 'card' }, h('b', null, 'Vuoi Sofia in video?'),
+    h('p', { class: 'muted small' }, getSettings().geminiKey ? 'Si muove, parla, approva e disapprova. Gemini Veo è a pagamento.' : 'Serve la chiave Gemini (Impostazioni). Poi Sofia può muoversi davvero.'),
+    h('button', { class: 'btn ghost', onclick: async (e) => {
+      if (!getSettings().geminiKey) { nav('settings'); return; }
+      if (!await confirmSheet('Creo 4 brevi video di Sofia con Gemini Veo. È a pagamento (richiede fatturazione attiva su Google). Procedo?', 'Crea i video')) return;
+      e.target.disabled = true; e.target.textContent = 'Creo i video… (qualche minuto)';
+      const r = await generateTutorVideos((m) => { e.target.textContent = m.slice(0, 60); });
+      toast(r.ok ? 'Sofia in video pronta' : 'Gemini: ' + r.error, r.ok ? undefined : 'err');
+      if (r.ok) nav('home'); else { e.target.disabled = false; e.target.textContent = 'Riprova'; }
+    } }, getSettings().geminiKey ? 'Crea i video di Sofia' : 'Inserisci la chiave')));
+}
+
   if (!hasAnthropicKey()) {
     host.append(h('div', { class: 'card warn' }, h('b', null, 'Manca la chiave API'), h('p', null, 'Per generare le scene serve la chiave Anthropic. Si inserisce una volta sola.'), h('button', { class: 'btn primary', onclick: () => nav('settings') }, 'Apri impostazioni')));
   }
