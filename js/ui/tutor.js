@@ -1,0 +1,141 @@
+/* Il tutor: personaggio animato (SVG) che respira, sbatte le palpebre, parla muovendo la bocca,
+   si rallegra o si rattrista, e che reagisce agli errori (scuote la testa + vibrazione).
+   Se hai generato i video con Gemini, usa quelli al posto del disegno. */
+import { h, vibrate, toast } from './dom.js';
+import { onSpeaking, isSpeaking } from '../tts.js';
+import { state, bus, getSettings, setSettings, emit } from '../store.js';
+import { avatarSVG, AVATARS, AVATAR_GROUPS } from './avatars.js';
+import { imgUrl, avatarSet, avatarVideos, generateAvatarSet } from '../images.js';
+
+function svgTutor() {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = avatarSVG(getSettings().avatar, getSettings().tutorName);
+  return wrap.firstElementChild;
+}
+
+/** crea il tutor. mood: neutral | happy | think | oops */
+export function createTutor({ size = 120, onTap } = {}) {
+  const box = h('div', { class: 'tutor', style: { width: size + 'px', height: size + 'px' } });
+  let mood = 'neutral', open = false, timer = null, talkTimer = null, urls = null, svg = null, video = null, curClip = '';
+  const imgs = {};
+
+  async function build() {
+    box.textContent = '';
+    urls = null; video = null; curClip = '';
+    const set = {};
+    const src = avatarVideos(getSettings().avatar);
+    if (src) { for (const k of Object.keys(src)) set[k] = await imgUrl(src[k]); }
+    if (set.idle) {
+      urls = set;
+      video = h('video', { class: 'tutor-img', muted: true, playsinline: true, preload: 'auto' });
+      video.muted = true;
+      box.append(video);
+      svg = null;
+    } else if (avatarSet(getSettings().avatar) || state.tutorImgs) {
+      const st = {};
+      const src2 = avatarSet(getSettings().avatar) || state.tutorImgs;
+      for (const k of Object.keys(src2)) st[k] = await imgUrl(src2[k]);
+      if (st.closed) {
+        Object.keys(st).forEach((k) => { imgs[k] = h('img', { src: st[k], alt: '', class: 'tutor-img', draggable: 'false' }); imgs[k].style.display = 'none'; box.append(imgs[k]); });
+        urls = st; svg = null;
+      }
+    }
+    if (!urls) { svg = svgTutor(); box.append(svg); }
+    render();
+  }
+
+  function playClip(name, loop) {
+    if (!video || !urls[name]) name = 'idle';
+    if (curClip === name && !video.ended) return;
+    curClip = name;
+    video.loop = loop;
+    video.src = urls[name];
+    video.onended = () => { if (!loop) { mood = 'neutral'; render(); } };
+    const p = video.play(); if (p && p.catch) p.catch(() => {});
+  }
+
+  function render() {
+    if (video) {
+      if (open && urls.talk) playClip('talk', true);
+      else if (mood === 'happy' && urls.yes) playClip('yes', false);
+      else if (mood === 'oops' && urls.no) playClip('no', false);
+      else playClip('idle', true);
+    } else if (urls) {
+      const want = open ? (open === 2 && urls.happy ? 'happy' : urls.open ? 'open' : 'closed') : (mood !== 'neutral' && urls[mood] ? mood : 'closed');
+      Object.keys(imgs).forEach((k) => { imgs[k].style.display = k === want ? '' : 'none'; });
+    } else if (svg) {
+      const want = open ? (open === 2 ? 'm-happy' : 'm-open') : mood === 'happy' ? 'm-happy' : mood === 'think' ? 'm-think' : mood === 'oops' ? 'm-oops' : 'm-closed';
+      svg.querySelectorAll('.m').forEach((m) => { m.style.display = m.classList.contains(want) ? '' : 'none'; });
+      const br = svg.querySelector('.brow');
+      if (br) br.setAttribute('transform', mood === 'think' ? 'translate(0,-4)' : mood === 'happy' ? 'translate(0,-2)' : mood === 'oops' ? 'translate(0,3)' : '');
+    }
+    box.classList.toggle('talking', !!open);
+  }
+
+  function setSpeaking(on) {
+    clearInterval(timer);
+    if (on) {
+      timer = setInterval(() => { const r = Math.random(); open = r < 0.18 ? false : r < 0.42 ? 2 : 1; render(); }, 130);
+      open = 1; render();
+    } else { open = false; render(); }
+  }
+
+  const off = onSpeaking(setSpeaking);
+  const onImgs = () => build();
+  bus.addEventListener('tutorImgs', onImgs);
+  bus.addEventListener('avatar', onImgs);
+  const mo = new MutationObserver(() => {
+    if (!document.body.contains(box)) { off(); clearInterval(timer); clearTimeout(talkTimer); bus.removeEventListener('tutorImgs', onImgs); bus.removeEventListener('avatar', onImgs); mo.disconnect(); }
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+  if (onTap) { box.classList.add('tappable'); box.addEventListener('click', onTap); }
+
+  build().then(() => { if (isSpeaking()) setSpeaking(true); });
+  const api = {
+    el: box,
+    setMood(m) { mood = m || 'neutral'; render(); },
+    /** festeggia: saltello + sorriso */
+    cheer() { mood = 'happy'; render(); box.classList.remove('bounce', 'shake'); void box.offsetWidth; box.classList.add('bounce'); },
+    /** errore: faccia dispiaciuta, scossa della testa, vibrazione forte */
+    oops({ buzz = true } = {}) { mood = 'oops'; render(); box.classList.remove('bounce', 'shake'); void box.offsetWidth; box.classList.add('shake'); if (buzz) vibrate('bad'); setTimeout(() => { if (mood === 'oops' && !video) { mood = 'neutral'; render(); } }, 3500); },
+    /** parla (muove la bocca) per il tempo che serve a leggere il testo, senza audio */
+    talkText(text) {
+      clearTimeout(talkTimer);
+      const ms = Math.min(9000, 500 + String(text || '').length * 45);
+      if (!isSpeaking()) setSpeaking(true);
+      talkTimer = setTimeout(() => { if (!isSpeaking()) setSpeaking(false); }, ms);
+    }
+  };
+  return api;
+}
+
+export function bubble(...kids) {
+  return h('div', { class: 'bubble' }, kids);
+}
+
+/** griglia per scegliere il tutor, divisa per tipo */
+export function avatarPicker(onPick) {
+  const wrap = h('div', { class: 'stack' });
+  const draw = () => {
+    wrap.textContent = '';
+    AVATAR_GROUPS.forEach((g) => {
+      const list = AVATARS.filter((a) => a.group === g);
+      if (!list.length) return;
+      const grid = h('div', { class: 'avatar-grid' });
+      list.forEach((a) => {
+        const thumb = h('div', { class: 'av-thumb' });
+        thumb.innerHTML = avatarSVG(a.id, getSettings().tutorName);
+        const gs = avatarSet(a.id);
+        if (gs && gs.closed) imgUrl(gs.closed).then((u) => { if (u) { thumb.textContent = ''; thumb.append(h('img', { src: u, alt: '', style: { width: '100%', height: '100%', objectFit: 'cover' } })); } });
+        grid.append(h('button', { class: 'av' + (getSettings().avatar === a.id ? ' on' : ''), type: 'button', 'aria-label': a.name, onclick: () => {
+          setSettings({ avatar: a.id, tutorName: a.kind === 'mono' ? getSettings().tutorName : ({ gufo: 'Gufo', fox: 'Fox', bit: 'Bit', cosmo: 'Cosmo', orso: 'Bruno' })[a.id] || a.name });
+          emit('avatar'); draw(); if (onPick) onPick(a);
+          if (getSettings().tutorAuto && getSettings().geminiKey && !avatarSet(a.id)) { toast('Creo ' + a.name + ' con Gemini…'); generateAvatarSet(a.id).then((r) => { toast(r.ok ? a.name + ' è pronto!' : 'Gemini: ' + r.error, r.ok ? undefined : 'err'); draw(); }); }
+        } }, thumb, h('small', null, a.name)));
+      });
+      wrap.append(h('div', { class: 'f-label' }, g), grid);
+    });
+  };
+  draw();
+  return wrap;
+}
