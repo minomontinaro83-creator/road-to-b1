@@ -251,7 +251,7 @@ export async function autoTutor(toast, force) {
   const s = getSettings();
   if (!(s.tutorAuto || force) || !hasGeminiKey()) return;
   const id = s.avatar;
-  if (avatarSet(id) || genBusy || (!force && state.tutorAutoFail && state.tutorAutoFail[id] > Date.now() - 6 * 3600e3)) return;
+  if (id === 'sofia' || avatarSet(id) || genBusy || (!force && state.tutorAutoFail && state.tutorAutoFail[id] > Date.now() - 6 * 3600e3)) return;
   toast && toast('Creo il tuo tutor con Gemini…');
   const r = await generateAvatarSet(id);
   if (r.ok) toast && toast('Il tuo tutor è pronto!');

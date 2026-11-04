@@ -32,7 +32,7 @@ export const DEFAULT_SETTINGS = {
   showTranslation: false, explainLang: 'it',
   reviewPerDay: 20, newPerDay: 8, targetMinutes: 25,
   // tutor e immagini
-  tutorName: 'Marco', avatar: 'mono', autoLesson: true, vibrate: true, tutorLook: '', tutorAuto: true, autoSpeakTutor: true,
+  tutorName: 'Sofia', avatar: 'sofia', autoLesson: true, vibrate: true, tutorLook: '', tutorAuto: true, autoSpeakTutor: true,
   imagesOn: false, sceneImages: true, cardImages: true, maxImagesPerDay: 8,
   cardImageQuality: 'low', sceneImageQuality: 'medium',
   onboarded: false
