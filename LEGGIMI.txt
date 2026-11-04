@@ -1,0 +1,16 @@
+ROAD TO B1 - come metterla online (GitHub Pages)
+1. Crea un repository pubblico su GitHub e carica il contenuto della cartella (index.html, css, js, icone, manifest, sw.js, version.json).
+2. Settings -> Pages -> Source "Deploy from a branch" -> ramo main, cartella /(root).
+3. Apri l'indirizzo https://NOME.github.io/road-to-b1/ sul telefono (Chrome) -> menu con tre puntini -> "Installa app".
+4. Al primo avvio inserisci la chiave Anthropic (e, se vuoi le immagini, quella OpenAI o Gemini).
+Le chiavi e i progressi restano solo sul telefono: fai ogni tanto un backup da Impostazioni -> Dati.
+Aggiornamenti: Impostazioni -> Versione e aggiornamenti -> Controlla / Aggiorna ora (non tocca i tuoi dati).
+
+NOVITA 2.0
+- Il gesto o il tasto "indietro" di Android chiude le finestre e torna alla home, senza uscire dall'app.
+- Libri: segnalibri, evidenziatori a quattro colori e note sulle frasi (tocca una parola, poi scegli). Elenco da "Note" nel libro.
+- Libri: obiettivo di lettura (giorni o settimane) con tappa del giorno, barra in alto su tutto il libro, avviso a fine tappa, scheda "Libro di oggi" nella home.
+- Un libro riaggiunto ritrova segnalibri, note e progressi (stesso identificativo).
+- Il backup comprende anche note, segnalibri, posizioni e obiettivi dei libri.
+- Impostazioni a sezioni richiudibili; spazio occupato; controllo versione.
+- Home piu' leggera: tolti i riquadri promozionali di Gemini (restano in Impostazioni).
