@@ -239,23 +239,14 @@ function mono(a, name) {
 function photo(a) {
   const skin = '#EDB79B', lip = '#C96F73', dark = '#5A2A30';
   return `
-  <defs><filter id="soft-${a.id}" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="1.1"/></filter></defs>
+  <defs><filter id="soft-${a.id}" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="1.1"/></filter><mask id="jawmask-${a.id}" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200"><linearGradient id="jg-${a.id}" x1="0" y1="0" x2="0" y2="1"><stop offset=".41" stop-color="#000"/><stop offset=".47" stop-color="#fff"/><stop offset=".62" stop-color="#fff"/><stop offset=".72" stop-color="#000"/></linearGradient><rect x="70" y="0" width="64" height="200" fill="url(#jg-${a.id})"/></mask></defs>
   <rect width="200" height="200" fill="${a.bg[0]}"/>
   <g class="head">
     <image href="${a.photo}" width="200" height="200" preserveAspectRatio="xMidYMid slice"/>
     <g class="ph-lids" filter="url(#soft-${a.id})"><ellipse cx="84" cy="62" rx="9.5" ry="5.2" fill="${skin}"/><ellipse cx="112" cy="58.5" rx="9.5" ry="5.2" fill="${skin}"/>
       <path d="M75 63q9 4 18 0M103 59.5q9 4 18 0" fill="none" stroke="#4B3328" stroke-width="1.2" stroke-linecap="round"/></g>
-    <path class="m m-closed" d="M0 0" fill="none"/>
-    <g class="m m-open" style="display:none"><ellipse cx="102" cy="91" rx="14.5" ry="6.5" fill="${skin}" filter="url(#soft-${a.id})"/>
-      <path d="M90 89q12 -3 24 -2q-1 11 -12 11.5t-12 -9.5z" fill="${dark}"/><path d="M95 94.5q7 -4 14 0q-3 3.5 -7 3.5t-7 -3.5z" fill="#B8505A"/>
-      <path d="M90 89q12 -3 24 -2" fill="none" stroke="${lip}" stroke-width="2.2" stroke-linecap="round"/><path d="M92 97q10 5 20 0" fill="none" stroke="${lip}" stroke-width="2.2" stroke-linecap="round"/></g>
-    <g class="m m-happy" style="display:none"><ellipse cx="102" cy="91" rx="16" ry="7.5" fill="${skin}" filter="url(#soft-${a.id})"/>
-      <path d="M88 88.5q14 -4 28 -1q-2 13 -14 13t-14 -12z" fill="${dark}"/><path d="M90 88.5q12 -3 24 -1v3.5q-12 2 -24 0z" fill="#fff"/><path d="M95 95q7 -4 14 0q-3 4 -7 4t-7 -4z" fill="#B8505A"/>
-      <path d="M88 88.5q14 -4 28 -1" fill="none" stroke="${lip}" stroke-width="2.2" stroke-linecap="round"/></g>
-    <path class="m m-think" style="display:none" d="M92 92q10 -3 20 0" fill="none" stroke="${lip}" stroke-width="2.6" stroke-linecap="round"/>
-    <g class="m m-oops" style="display:none"><ellipse cx="102" cy="91" rx="15" ry="6" fill="${skin}" filter="url(#soft-${a.id})"/>
-      <path d="M91 95q11 -9 22 -1" fill="none" stroke="${lip}" stroke-width="3" stroke-linecap="round"/>
-      <path d="M75 54.5L95 59.5M103 59L122 50.5" fill="none" stroke="#5F4030" stroke-width="3.2" stroke-linecap="round" filter="url(#soft-${a.id})"/></g>
+    <g class="jaw" mask="url(#jawmask-${a.id})"><image href="${a.photo}" width="200" height="200" preserveAspectRatio="xMidYMid slice"/></g>
+    <g class="m m-oops" style="display:none"><path d="M75 55L95 59.5M103 59L122 51" fill="none" stroke="#5F4030" stroke-width="2.4" stroke-linecap="round" opacity=".5" filter="url(#soft-${a.id})"/></g>
   </g>`;
 }
 
