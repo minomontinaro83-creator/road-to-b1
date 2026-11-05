@@ -49,6 +49,7 @@ export function getSettings() {
     if (['ollie', 'sofia', 'max', 'emma', 'leo', 'rose', 'fox', 'bot'].includes(saved.avatar) && !saved.avatarV2) { saved.avatar = 'marco'; saved.avatarV2 = 1; if (saved.tutorName === 'Ollie') saved.tutorName = 'Marco'; }
     if (!saved.imgV2) { saved.imagesOn = false; saved.imgV2 = 1; }
     if (!saved.avatarV4) { if (!saved.avatar || saved.avatar === 'mono') saved.avatar = 'marco'; saved.avatarV4 = 1; }
+    if (!saved.avatarV5) { saved.avatar = 'sofia'; if (!saved.tutorName || saved.tutorName === 'Marco') saved.tutorName = 'Sofia'; saved.avatarV5 = 1; }
     settingsCache = Object.assign({}, DEFAULT_SETTINGS, saved);
   }
   return settingsCache;
