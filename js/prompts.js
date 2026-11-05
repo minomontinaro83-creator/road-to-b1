@@ -7,6 +7,8 @@ import { STAGE_GUIDE } from './story.js';
 
 const accentName = (s) => (s.accent === 'uk' ? 'British' : 'American');
 const ipaName = (s) => (s.accent === 'uk' ? 'British (RP)' : 'General American');
+/** pronuncia figurata: solo lettere italiane (niente simboli IPA) */
+const PRON = 'Italian-letter respelling for an Italian reader, NOT IPA: write how the words sound using only ordinary Italian letters and accents, words separated by spaces, no slashes, no IPA symbols, no punctuation; mark the stressed vowel of each word with a grave or acute accent. Examples: "I would like a coffee" -> "ai ud laik e cofi" (with stress "ai ud laik e còfi"), "water" -> "uòrer", "thought" -> "thòt", "ship" -> "scip", "think" -> "thìnk".';
 const WORDS_BY_LENGTH = { short: 500, medium: 800, long: 1200, xl: 1700 };
 export const wordsFor = (s) => (s.sceneLength === 'custom' ? Math.min(2500, Math.max(300, Number(s.customWords) || 1200)) : (WORDS_BY_LENGTH[s.sceneLength] || 1200));
 const FOCUS = { mix: '', travel: 'Favour typical travel situations (transport, accommodation, sightseeing, problems on the road).', daily: 'Favour everyday life situations (shops, services, home, neighbours, small talk).', social: 'Favour social situations (meeting people, invitations, parties, conversations about hobbies, family and opinions).', work: 'Favour work-related situations (meetings, emails, phone calls, colleagues, business travel).' };
@@ -16,7 +18,7 @@ const SENT = (needIpa) => ({
   properties: Object.assign({
     en: { type: 'string', description: 'One sentence or one line of dialogue, exactly as the learner will read it.' },
     newPara: { type: 'boolean', description: 'true on the first sentence of every new paragraph.' }
-  }, needIpa ? { ipa: { type: 'string', description: 'IPA transcription of this exact sentence, word by word, with stress marks, without slashes.' } } : {}),
+  }, needIpa ? { ipa: { type: 'string', description: 'Pronunciation of this exact sentence, word by word. ' + PRON } } : {}),
   required: needIpa ? ['en', 'ipa'] : ['en']
 });
 
@@ -25,7 +27,7 @@ const GLOSSARY_ITEM = {
   properties: {
     surface: { type: 'string', description: 'The word or phrase copied EXACTLY as written in the text (same inflection).' },
     it: { type: 'string', description: 'Short natural Italian translation for this context.' },
-    ipa: { type: 'string', description: 'IPA of the surface, without slashes.' },
+    ipa: { type: 'string', description: 'Pronunciation of the surface. ' + PRON },
     kind: { type: 'string', enum: ['word', 'phrasal', 'idiom', 'expression', 'irregular', 'pattern'] },
     visual: { type: 'boolean', description: 'true only if it is a concrete object, place or clear physical action that can be drawn as a simple picture.' }
   },
@@ -97,8 +99,8 @@ export function buildEpisodeRequest(ctx) {
     '- Use ALL target items naturally inside the text (inflect them if needed; phrasal verbs and patterns must appear whole). Reuse the review words naturally when they fit.',
     '- The glossary has one entry for every target item plus a few other useful words or phrases (8 to 16 entries in total). "surface" must appear exactly in "sentences" (same spelling and inflection).',
     needIpa
-      ? '- Give IPA (' + ipaName(s) + ', no slashes, with stress marks) for EVERY sentence in "ipa", matching the sentence exactly.'
-      : '- Do not provide IPA for the sentences (only for the glossary entries).',
+      ? '- Give the pronunciation (' + ipaName(s) + ' accent) for EVERY sentence in "ipa", matching the sentence exactly. ' + PRON
+      : '- Do not provide pronunciation for the sentences (only for the glossary entries).',
     '- Continue the story coherently with the diary. Advance the plot a little. Never resolve the central mystery early. End the scene with a small hook that makes the learner curious about tomorrow.',
     '- Keep it warm, light and a little humorous. No violence, no politics, nothing distressing.',
     '- The role-play must be a natural exchange based on a key moment of the scene, where the tutor plays another person and the learner plays himself.',
@@ -222,7 +224,7 @@ export function tutorTool(needIpa) {
         },
         hints: { type: 'array', minItems: 2, maxItems: 3, items: HINT, description: 'Short useful phrases the learner could use in the next answer.' },
         mood: { type: 'string', enum: ['neutral', 'happy', 'think'] }
-      }, needIpa ? { reply_ipa: { type: 'string', description: 'IPA of reply_en, without slashes.' } } : {}),
+      }, needIpa ? { reply_ipa: { type: 'string', description: 'Pronunciation of reply_en. ' + PRON } } : {}),
       required: ['reply_en', 'reply_it', 'corrections', 'hints']
     }
   };
@@ -261,7 +263,7 @@ export const LOOKUP_TOOL = {
     type: 'object',
     properties: {
       it: { type: 'string', description: 'Short Italian translation of the word as used in the sentence (1-4 words; for idioms the Italian equivalent or a short explanation).' },
-      ipa: { type: 'string', description: 'IPA without slashes.' },
+      ipa: { type: 'string', description: 'Pronunciation. ' + PRON },
       pos: { type: 'string', description: 'Part of speech in Italian: nome, verbo, aggettivo, avverbio, espressione, ecc.' },
       base: { type: 'string', description: 'The base form (infinitive of a verb, singular of a noun) if different from the word.' },
       phrase: { type: 'string', description: 'If the word is part of a phrasal verb, verb+preposition, idiom, collocation or fixed expression in THIS sentence, the whole expression (e.g. "gave up", "look forward to", "in the end"). For a separable phrasal verb split by an object ("picked it up") give the dictionary form ("pick up"). Empty string if the word stands alone.' },
@@ -273,7 +275,7 @@ export const LOOKUP_TOOL = {
 
 export function buildLookupRequest(word, sentence, s) {
   return {
-    system: 'You are a bilingual English-Italian dictionary for an Italian learner. Give the meaning the word has in the given sentence. IMPORTANT: always check whether the word belongs to a multi-word expression in that sentence (phrasal verb such as "give up", verb + preposition such as "depend on", idiom, fixed phrase). If it does, set "phrase" to the whole expression and make "it", "ipa" and "pos" describe the WHOLE expression, not the single word. Pronunciation: ' + ipaName(s) + ' IPA. Always answer by calling the tool lookup_word.',
+    system: 'You are a bilingual English-Italian dictionary for an Italian learner. Give the meaning the word has in the given sentence. IMPORTANT: always check whether the word belongs to a multi-word expression in that sentence (phrasal verb such as "give up", verb + preposition such as "depend on", idiom, fixed phrase). If it does, set "phrase" to the whole expression and make "it", "ipa" and "pos" describe the WHOLE expression, not the single word. Pronunciation: ' + ipaName(s) + ' accent, written as follows. ' + PRON + ' Always answer by calling the tool lookup_word.',
     messages: [{ role: 'user', content: 'Word: "' + word + '"\nSentence: "' + (sentence || '') + '"' }],
     tool: LOOKUP_TOOL, maxTokens: 400
   };
@@ -349,7 +351,7 @@ export function articleSystem(s, level) {
     'You prepare a short daily reading for an Italian adult learning English to travel and meet people abroad.',
     'Pick an interesting, positive or neutral story suitable for conversation (avoid crime, war, tragedies and divisive politics). ALWAYS rewrite the story in your own words; never copy sentences from the original.',
     'Write it at level ' + L.cefr + ' (' + level.toFixed(1) + '/10): average sentence about ' + L.avgWords + ' words, grammar: ' + L.grammar + ', in ' + accentName(s) + ' English. About 200-260 words, split into sentences; set newPara=true at the start of each paragraph.',
-    needIpa ? 'Give IPA (' + ipaName(s) + ', no slashes) for every sentence.' : 'No IPA for sentences.',
+    needIpa ? 'Give the pronunciation (' + ipaName(s) + ' accent) for every sentence. ' + PRON : 'No IPA for sentences.',
     'The glossary lists 6-8 useful words or phrases copied exactly as written in the text. Three comprehension questions, each with the correct answer and two wrong options, in simple English.',
     'Always finish by calling the tool deliver_article.'
   ].join('\n');
@@ -358,12 +360,12 @@ export function articleSystem(s, level) {
 /* ============================== LIBRI (EPUB) ============================== */
 export const IPA_TOOL = {
   name: 'deliver_ipa',
-  description: 'IPA transcription of each sentence, same order.',
+  description: 'Pronunciation of each sentence in Italian letters, same order.',
   input_schema: { type: 'object', properties: { ipa: { type: 'array', items: { type: 'string' } } }, required: ['ipa'] }
 };
 export function buildIpaRequest(sentences, accent) {
   return {
-    system: 'You are a phonetician. For each English sentence give a broad IPA transcription (' + (accent === 'uk' ? 'British RP' : 'General American') + ') of the whole sentence as normally spoken, words separated by spaces, without slashes and without punctuation. One entry per sentence, same order. Always answer by calling the tool deliver_ipa.',
+    system: 'You are a phonetician writing for Italian readers. For each English sentence give the pronunciation (' + (accent === 'uk' ? 'British RP' : 'General American') + ' accent) of the whole sentence as normally spoken. ' + PRON + ' One entry per sentence, same order. Always answer by calling the tool deliver_ipa.',
     messages: [{ role: 'user', content: sentences.map((x, i) => (i + 1) + '. ' + x).join('\n') }],
     tool: IPA_TOOL, maxTokens: 400 + sentences.reduce((a, x) => a + x.length * 1.6, 0)
   };
@@ -382,7 +384,7 @@ export const BOOKWORDS_TOOL = {
           properties: {
             surface: { type: 'string', description: 'Exact word or expression as it appears in the text (keep it contiguous in the text).' },
             it: { type: 'string', description: 'Italian meaning in this context.' },
-            ipa: { type: 'string', description: 'IPA without slashes.' },
+            ipa: { type: 'string', description: 'Pronunciation. ' + PRON },
             kind: { type: 'string', enum: ['word', 'phrasal', 'idiom', 'collocation'] }
           },
           required: ['surface', 'it', 'ipa', 'kind']
@@ -420,7 +422,7 @@ export const LESSON_TOOL = {
       pronunciation: {
         type: 'array', maxItems: 5,
         items: { type: 'object', properties: {
-          word: { type: 'string' }, ipa: { type: 'string', description: 'IPA without slashes.' },
+          word: { type: 'string' }, ipa: { type: 'string', description: 'Pronunciation. ' + PRON },
           tip_it: { type: 'string', description: 'Short Italian tip: stress, silent letters, vowel sounds Italians find hard.' }
         }, required: ['word', 'ipa', 'tip_it'] }
       },

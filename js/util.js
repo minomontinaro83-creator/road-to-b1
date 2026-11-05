@@ -224,3 +224,9 @@ export function wordKey(w) {
 export function looksLikeSentence(text) {
   return normText(text).split(' ').length >= 5;
 }
+
+/** pronuncia: le nuove sono scritte con lettere italiane; le vecchie in IPA restano tra barre */
+export function fmtPron(p) {
+  const t = String(p || '').replace(/^\/|\/$/g, '').trim();
+  return /[əɪʊæʃʒθðŋɑɔɛʌɜɒˈˌː]/.test(t) ? '/' + t + '/' : t;
+}

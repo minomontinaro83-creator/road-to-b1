@@ -246,7 +246,7 @@ export async function lookupWord(word, sentence, ep) {
   const req = P.buildLookupRequest(word, sentence, s);
   const [r, dip] = await Promise.all([
     claudeTool({ model: s.textModel, system: req.system, messages: req.messages, tool: req.tool, maxTokens: req.maxTokens, retries: 1 }),
-    s.dictIpa && s.accent !== 'uk' ? dictionaryIpa(word) : Promise.resolve('')
+    false ? dictionaryIpa(word) : Promise.resolve('')
   ]);
   if (!r.ok) return r;
   const phrase = String(r.input.phrase || '').trim();

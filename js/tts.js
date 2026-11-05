@@ -109,8 +109,20 @@ function pickVoice(voices) {
     || voices.find((v) => /^en/i.test(v.lang)) || null;
 }
 
+/* ---------- posizione della parola letta ---------- */
+/** segue l'audio (che non dà eventi di parola) stimando la posizione dal tempo trascorso */
+function trackAudio(a, len, onPos) {
+  if (!onPos) return () => {};
+  const t = setInterval(() => {
+    const d = a.duration;
+    if (!d || !isFinite(d) || a.paused) return;
+    onPos(Math.min(len - 1, Math.floor((a.currentTime / d) * len)));
+  }, 70);
+  return () => clearInterval(t);
+}
+
 /* ---------- motori ---------- */
-function deviceChunk(text, rate, id, voices) {
+function deviceChunk(text, rate, id, voices, onPos) {
   return new Promise((resolve, reject) => {
     const u = new SpeechSynthesisUtterance(text);
     currentUtterance = u;
@@ -119,10 +131,14 @@ function deviceChunk(text, rate, id, voices) {
     u.pitch = getSettings().ttsPitch || 1;
     const v = pickVoice(voices);
     if (v) u.voice = v;
-    let started = false, finished = false, timer = null;
-    const end = (fn) => { if (finished) return; finished = true; clearTimeout(timer); cancelFn = null; fn(); };
+    let started = false, finished = false, timer = null, est = null, gotB = false;
+    const end = (fn) => { if (finished) return; finished = true; clearTimeout(timer); clearInterval(est); cancelFn = null; fn(); };
+    if (onPos) u.onboundary = (ev) => { if (ev && ev.name && ev.name !== 'word') return; gotB = true; onPos(ev.charIndex || 0); };
     cancelFn = () => { end(() => resolve()); try { speechSynthesis.cancel(); } catch (e) { /* ignora */ } };
-    u.onstart = () => { started = true; if (id === reqId) setSpeaking(true); };
+    u.onstart = () => {
+      started = true; if (id === reqId) setSpeaking(true);
+      if (onPos) { const t0 = Date.now(); est = setInterval(() => { if (gotB) return; onPos(Math.min(text.length - 1, Math.floor(((Date.now() - t0) / 1000) * 13 * rate))); }, 120); }
+    };
     u.onend = () => end(resolve);
     u.onerror = (ev) => {
       if (ev && (ev.error === 'interrupted' || ev.error === 'canceled')) end(resolve);
@@ -145,13 +161,13 @@ function getAudio() {
   }
   return audioEl;
 }
-function onlineChunk(text, rate, id) {
+function onlineChunk(text, rate, id, onPos) {
   return new Promise((resolve, reject) => {
     const a = getAudio();
-    let finished = false;
-    const end = (fn) => { if (finished) return; finished = true; cancelFn = null; a.onended = a.onerror = a.onplay = null; fn(); };
+    let finished = false, stopT = () => {};
+    const end = (fn) => { if (finished) return; finished = true; stopT(); cancelFn = null; a.onended = a.onerror = a.onplay = null; fn(); };
     cancelFn = () => { end(() => resolve()); try { a.pause(); } catch (e) { /* ignora */ } };
-    a.onplay = () => { if (id === reqId) setSpeaking(true); };
+    a.onplay = () => { if (id === reqId) setSpeaking(true); stopT(); stopT = trackAudio(a, text.length, onPos); };
     a.onended = () => end(resolve);
     a.onerror = () => end(() => reject(new Error('online-error')));
     a.src = onlineUrl(text);
@@ -190,15 +206,15 @@ export function prefetchSpeech(text) {
   const t = String(text || '').replace(/\s+/g, ' ').trim();
   if (t) naturalGet(t).catch(() => {});
 }
-function naturalChunk(text, rate, id) {
+function naturalChunk(text, rate, id, onPos) {
   return new Promise((resolve, reject) => {
     naturalGet(text).then((u) => {
       if (id !== reqId) return resolve();
       const a = getAudio();
-      let finished = false;
-      const end = (fn) => { if (finished) return; finished = true; cancelFn = null; a.onended = a.onerror = a.onplay = null; fn(); };
+      let finished = false, stopT = () => {};
+      const end = (fn) => { if (finished) return; finished = true; stopT(); cancelFn = null; a.onended = a.onerror = a.onplay = null; fn(); };
       cancelFn = () => { end(() => resolve()); try { a.pause(); } catch (e) { /* ignora */ } };
-      a.onplay = () => { if (id === reqId) setSpeaking(true); };
+      a.onplay = () => { if (id === reqId) setSpeaking(true); stopT(); stopT = trackAudio(a, text.length, onPos); };
       a.onended = () => end(resolve);
       a.onerror = () => end(() => reject(new Error('natural-play-error')));
       a.src = u;
@@ -233,18 +249,21 @@ export async function speak(text, opts = {}) {
   let mode = wantsNatural() ? 'natural' : preferOnline() ? 'online' : 'device';
   const chunks = splitTtsText(clean, mode === 'natural' ? 260 : mode === 'online' ? 180 : 200);
   let voices = mode === 'device' ? await getVoices() : [];
+  const offs = []; let cur = 0;
+  chunks.forEach((c) => { const k = clean.indexOf(c, cur); offs.push(k < 0 ? cur : k); cur = (k < 0 ? cur : k) + c.length; });
+  const posFor = (n) => (opts.onWord ? (p) => { if (id === reqId) opts.onWord(offs[n] + p); } : null);
   let i = 0;
   while (i < chunks.length) {
     if (id !== reqId) return { ok: true, cancelled: true };
     try {
       if (mode === 'natural') {
         if (chunks[i + 1]) naturalGet(chunks[i + 1]).catch(() => {});
-        await naturalChunk(chunks[i], rate, id);
+        await naturalChunk(chunks[i], rate, id, posFor(i));
         noteNatural(true);
-      } else if (mode === 'device') await deviceChunk(chunks[i], rate, id, voices);
+      } else if (mode === 'device') await deviceChunk(chunks[i], rate, id, voices, posFor(i));
       else {
         if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new Error('offline');
-        await onlineChunk(chunks[i], rate, id);
+        await onlineChunk(chunks[i], rate, id, posFor(i));
       }
       i++;
     } catch (e) {
