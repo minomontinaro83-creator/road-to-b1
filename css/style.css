@@ -480,3 +480,27 @@ details.acc[open]>summary::after{transform:rotate(-90deg)}
 .wa-input{width:100%;border:0;outline:0;background:none;resize:none;font:1rem/1.35 system-ui,sans-serif;color:var(--wa-ink);padding:8px 0;max-height:120px}
 .wa-send{width:46px;height:46px;border-radius:50%;border:0;background:var(--wa-send);color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .wa-send svg{fill:#fff;stroke:#fff}.wa-send:disabled{opacity:.55}
+
+/* ---------- WhatsApp moderno (2.4.1) ---------- */
+.wa{--wa-head:#FFFFFF;--wa-bg:#F6F4F1;--wa-me:#D8FDD2;--wa-bot:#FFFFFF;--wa-ink:#111B21;--wa-sub:#6B7B84;--wa-send:#1DAA61;--wa-note:#FFF6D6;--wa-line:rgba(17,27,33,.08);border-radius:20px;box-shadow:0 2px 14px rgba(17,27,33,.10)}
+:root[data-theme=dark] .wa{--wa-head:#161C20;--wa-bg:#0B1014;--wa-me:#103629;--wa-bot:#1C2328;--wa-ink:#E9EDEF;--wa-sub:#8A9AA3;--wa-send:#25D366;--wa-note:#33301E;--wa-line:rgba(255,255,255,.08)}
+.wa-head{background:var(--wa-head);color:var(--wa-ink);border-bottom:1px solid var(--wa-line);padding:10px 14px}
+.wa-av{width:44px;height:44px}.wa-av .tutor{width:44px!important;height:44px!important}
+.wa-hn b{font-size:1.02rem;font-weight:650;letter-spacing:-.01em}
+.wa-sub{opacity:1;color:var(--wa-send);font-weight:500}
+.wa-log,:root[data-theme=dark] .wa-log{background-image:none;padding:12px 12px 6px;gap:3px}
+.wa-day{background:var(--wa-bot);color:var(--wa-sub);box-shadow:none;border:1px solid var(--wa-line);border-radius:12px;font-weight:600;padding:3px 12px}
+:root[data-theme=dark] .wa-day{background:var(--wa-bot);color:var(--wa-sub)}
+.wa-msg{max-width:82%;padding:8px 12px 5px;border-radius:20px;box-shadow:0 1px 1px rgba(17,27,33,.06)}
+.wa-msg.me{border-top-right-radius:20px;border-bottom-right-radius:6px}
+.wa-msg.bot{border-top-left-radius:20px;border-bottom-left-radius:6px}
+.wa-msg.me::after,.wa-msg.bot::after{display:none}
+.wa-row+.wa-row.me,.wa-row.me+.wa-row.me{margin-top:0}
+.wa-note{border-radius:14px;box-shadow:none;border:1px solid var(--wa-line)}
+.wa-note.ok{background:transparent;border:0}
+.wa-chips{padding:6px 12px 2px}
+.wa-chip{border:1px solid var(--wa-line);border-radius:18px;padding:7px 14px;box-shadow:none;color:var(--wa-ink)}
+.wa-chip:active{background:var(--wa-me)}
+.wa-bar{padding:8px 10px 10px;background:var(--wa-bg);align-items:center}
+.wa-field{background:var(--wa-bot);border:1px solid var(--wa-line);border-radius:26px;padding:2px 16px;box-shadow:none}
+.wa-send{width:46px;height:46px;box-shadow:0 2px 6px rgba(29,170,97,.35)}
