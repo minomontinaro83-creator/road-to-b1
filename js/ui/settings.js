@@ -2,10 +2,9 @@ import { h, clear, toast, confirmSheet, say, sheet } from './dom.js';
 import { createTutor, avatarPicker } from './tutor.js';
 import { getSettings, setSettings, state, replaceState, exportBackup, parseBackup, restoreBooksMeta, newState, flushState, storageMode, saveState } from '../store.js';
 import { VERSION, NEWS } from '../version.js';
-import { testAnthropic, testOpenAI, testGemini } from '../api.js';
+import { testAnthropic } from '../api.js';
 import { englishVoices, resetTtsFailure, resetNaturalFailure, speak, rankVoices, voiceScore, NATURAL_VOICES } from '../tts.js';
 import { applyAppearance, FONTS, COLORS } from './appearance.js';
-import { autoTutor, generateTutorSet, generateAvatarSet, clearTutorSet, TUTOR_EXPRESSIONS, generateTutorVideos, clearTutorVideos } from '../images.js';
 import { makeCard } from '../srs.js';
 import { dayStr, addDays, normText } from '../util.js';
 
@@ -37,7 +36,6 @@ export function renderSettings(host, nav) {
   const s = getSettings();
   const keyStatus = h('div', { class: 'muted small' });
   const aIn = h('input', { class: 'input', type: 'password', value: s.apiKey, placeholder: 'sk-ant-…', autocomplete: 'off', onchange: (e) => setSettings({ apiKey: e.target.value.trim() }) });
-  const oIn = h('input', { class: 'input', type: 'password', value: s.openaiKey, placeholder: 'sk-… (facoltativa)', autocomplete: 'off', onchange: (e) => setSettings({ openaiKey: e.target.value.trim() }) });
   const preview = h('p', { class: 'read-preview' }, 'I would like a window seat, please. “Could you tell me where the gate is?”');
 
   host.append(h('h2', { class: 'step-title' }, 'Impostazioni'));
@@ -50,18 +48,7 @@ export function renderSettings(host, nav) {
       const r = await testAnthropic(getSettings().textModel); e.target.disabled = false;
       keyStatus.textContent = r.ok ? 'Connessione riuscita (' + r.ms + ' ms)' : '' + r.error; keyStatus.className = 'small ' + (r.ok ? 'ok' : 'err');
     } }, 'Prova la chiave Anthropic'),
-    field('OpenAI (immagini)', oIn),
-    h('button', { class: 'btn ghost', onclick: async (e) => {
-      setSettings({ openaiKey: oIn.value.trim() }); e.target.disabled = true; keyStatus.textContent = 'Provo…';
-      const r = await testOpenAI(getSettings().imageModelCard); e.target.disabled = false;
-      keyStatus.textContent = r.ok ? 'Chiave OpenAI valida' : '' + r.error; keyStatus.className = 'small ' + (r.ok ? 'ok' : 'err');
-    } }, 'Prova la chiave OpenAI'),
-    field('Gemini (immagini, chiave gratuita da Google AI Studio)', h('input', { class: 'input', type: 'password', value: s.geminiKey, placeholder: 'AIza… (facoltativa)', autocomplete: 'off', onchange: (e) => { setSettings({ geminiKey: e.target.value.trim() }); autoTutor(toast, true); } })),
-    h('button', { class: 'btn ghost', onclick: async (e) => {
-      e.target.disabled = true; keyStatus.textContent = 'Provo…';
-      const r = await testGemini(); e.target.disabled = false;
-      keyStatus.textContent = r.ok ? 'Chiave Gemini valida' : r.error; keyStatus.className = 'small ' + (r.ok ? 'ok' : 'err');
-    } }, 'Prova la chiave Gemini'), keyStatus));
+    keyStatus));
 
   host.append(card('Testo e aspetto',
     field('Carattere', select('font', Object.keys(FONTS).map((k) => [k, FONTS[k].label]), applyAppearance)),
@@ -115,45 +102,11 @@ export function renderSettings(host, nav) {
   const tutorBox = h('div', { class: 'center-col' });
   const drawTutor = () => { clear(tutorBox); tutorBox.append(createTutor({ size: 120 }).el); };
   drawTutor();
-  const genStatus = h('div', { class: 'muted small' });
   host.append(card('Tutor e immagini',
     tutorBox,
     h('div', { class: 'f-label' }, 'Scegli il tuo tutor'),
     avatarPicker(() => { drawTutor(); }),
     field('Nome del tutor', text('tutorName')),
-    toggle('tutorAuto', 'Tutor a mezzo busto creato da Gemini', 'Con la chiave Gemini, al primo avvio crea il tutor scelto (4 espressioni) e lo tiene sul telefono. Gli altri si creano quando li scegli.'),
-    h('button', { class: 'btn primary', onclick: async (e) => {
-      if (!getSettings().geminiKey) { toast('Inserisci prima la chiave Gemini.', 'err'); return; }
-      e.target.disabled = true;
-      const r = await generateAvatarSet(getSettings().avatar, (i, n) => { genStatus.textContent = 'Disegno ' + i + '/' + n + '…'; });
-      e.target.disabled = false;
-      genStatus.textContent = r.ok ? 'Tutor creato!' : r.error;
-      if (r.ok) drawTutor();
-    } }, 'Ricrea il tutor scelto con Gemini'),
-    field('Stile del ritratto (OpenAI)', select('tutorStyle', [['cartoon', 'Personaggio animato 3D'], ['sober', 'Illustrazione sobria'], ['photo', 'Fotografico']])),
-    field('Com\'è fatto? (in inglese)', h('textarea', { class: 'input', rows: 2, placeholder: 'a friendly teacher with curly red hair, round glasses, green jumper', onchange: (e) => setSettings({ tutorLook: e.target.value.trim() }) }, s.tutorLook), 'Lascia vuoto per il tutor predefinito.'),
-    h('button', { class: 'btn primary', onclick: async (e) => {
-      if (!getSettings().openaiKey) { toast('Inserisci prima la chiave OpenAI.', 'err'); return; }
-      if (!await confirmSheet('Creo il tutor con ' + TUTOR_EXPRESSIONS.length + ' immagini in alta qualità? Si paga una volta sola (poche decine di centesimi).', 'Crea')) return;
-      e.target.disabled = true;
-      const r = await generateTutorSet((i, n, l) => { genStatus.textContent = 'Disegno ' + (i + 1) + '/' + n + ': ' + l + '…'; });
-      e.target.disabled = false;
-      genStatus.textContent = r.ok ? 'Tutor creato!' : '' + r.error;
-      if (r.ok) { drawTutor(); toast('Nuovo tutor pronto!'); }
-    } }, 'Crea il mio tutor con OpenAI'),
-    state.tutorImgs ? h('button', { class: 'btn ghost', onclick: () => { clearTutorSet(); drawTutor(); } }, 'Torna al disegno integrato') : null,
-    genStatus,
-    h('button', { class: 'btn ghost', onclick: async (e) => {
-      if (!getSettings().geminiKey) { toast('Inserisci prima la chiave Gemini.', 'err'); return; }
-      if (!await confirmSheet('Creo 4 brevi video del tutor con Gemini Veo (attesa, parla, approva, disapprova). ATTENZIONE: Veo è a pagamento (indicativamente alcuni dollari in tutto, richiede fatturazione attiva su Google) e non l\'ho potuto verificare. Si fa una volta sola e restano sul telefono. Procedo?', 'Crea i video')) return;
-      e.target.disabled = true;
-      const r = await generateTutorVideos((m) => { genStatus.textContent = m; });
-      e.target.disabled = false;
-      genStatus.textContent = r.ok ? 'Video del tutor pronti' : r.error;
-      if (r.ok) { drawTutor(); toast('Tutor animato pronto'); }
-    } }, 'Crea il tutor in video con Gemini (a pagamento)'),
-    state.tutorVids ? h('button', { class: 'btn ghost', onclick: () => { clearTutorVideos(); drawTutor(); } }, 'Torna al personaggio disegnato') : null,
-    field('Motore immagini (carte e scene)', select('imageEngine', [['gemini', 'Gemini (chiave gratuita)'], ['pollinations', 'Pollinations (gratis, senza chiave)'], ['openai', 'OpenAI (a pagamento)']]), 'Le immagini sono spente di default: attivale qui sotto. Il ritratto del tutor con OpenAI richiede la chiave OpenAI.'),
     field('Chiave Pollinations (facoltativa)', text('pollinationsKey', { type: 'password' }), 'Senza chiave: una immagine ogni ~16 secondi, va bene lo stesso.'),
     toggle('imagesOn', 'Immagini attive', 'Spegni per non spendere nulla in immagini.'),
     toggle('sceneImages', 'Illustrazione della scena'),
@@ -162,7 +115,7 @@ export function renderSettings(host, nav) {
 
   host.append(card('Modelli (avanzate)',
     field('Testi e test', text('textModel')), field('Tutor (chat)', text('chatModel')), field('Notizia', text('articleModel')),
-    field('Gemini: modello immagini', text('geminiModel')), field('Gemini: modello video (Veo)', text('veoModel')), field('Immagini: scene', text('imageModelScene')), field('Immagini: carte', text('imageModelCard')), field('Immagini: tutor', text('imageModelTutor'))));
+    ));
 
   const file = h('input', { type: 'file', accept: '.json,application/json', style: { display: 'none' }, onchange: async (e) => {
     const f = e.target.files[0]; if (!f) return;
@@ -170,7 +123,7 @@ export function renderSettings(host, nav) {
       const p = parseBackup(await f.text());
       if (p.type === 'new') {
         if (!await confirmSheet('Sostituire i dati attuali con il backup?', 'Ripristina', true)) return;
-        const keys = { apiKey: getSettings().apiKey, openaiKey: getSettings().openaiKey };
+        const keys = { apiKey: getSettings().apiKey };
         replaceState(p.data.state); setSettings(Object.assign({}, p.data.settings || {}, keys)); applyAppearance();
         const nb = await restoreBooksMeta(p.data.books);
         toast('Backup ripristinato' + (nb ? ' (' + nb + ' libri ritrovati)' : ''));

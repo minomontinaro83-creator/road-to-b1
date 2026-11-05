@@ -12,7 +12,8 @@ const ICONS = {
   chart: '<path d="M4 20h16M7 16v-5M12 16V7M17 16v-8"/>',
   gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
   play: '<path d="M7 5l12 7-12 7z"/>',
-  pause: '<path d="M7 5v14M17 5v14"/>'
+  pause: '<path d="M7 5v14M17 5v14"/>',
+  send: '<path d="M3 11.5L21 3l-6.5 18-3-7.5z"/>'
 };
 export function icon(name, size = 22) {
   const s = document.createElement('span');
