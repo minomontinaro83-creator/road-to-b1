@@ -14,13 +14,10 @@ const SETTINGS_KEY = 'rtb1_settings_v1';
 
 export const DEFAULT_SETTINGS = {
   // chiavi e modelli
-  apiKey: '', openaiKey: '', pollinationsKey: '', geminiKey: '', geminiModel: 'gemini-2.5-flash-image', veoModel: 'veo-3.0-fast-generate-001', imageEngine: 'pollinations', // pollinations | openai | gemini
+  apiKey: '', pollinationsKey: '',
   textModel: 'claude-haiku-5-5',
   chatModel: 'claude-haiku-5-5',
   articleModel: 'claude-sonnet-5-5',
-  imageModelScene: 'gpt-image-1.5',
-  imageModelCard: 'gpt-image-1-mini',
-  imageModelTutor: 'gpt-image-1.5',
   // testo
   font: 'serif', margin: 8, pageInner: 14, fullWidth: true, fontSize: 19, lineHeight: 1.7, theme: 'light', color: 'blue', effects: false,
   // audio e fonetica
@@ -47,6 +44,7 @@ export function getSettings() {
     if (!saved.ttsV2) { if (!saved.ttsEngine || saved.ttsEngine === 'auto') saved.ttsEngine = 'natural'; saved.ttsV2 = 1; }
     if (['coral', 'green', 'violet'].includes(saved.color)) saved.color = 'blue';
     if (['ollie', 'sofia', 'max', 'emma', 'leo', 'rose', 'fox', 'bot'].includes(saved.avatar) && !saved.avatarV2) { saved.avatar = 'marco'; saved.avatarV2 = 1; if (saved.tutorName === 'Ollie') saved.tutorName = 'Marco'; }
+    delete saved.openaiKey; delete saved.geminiKey; delete saved.geminiModel; delete saved.veoModel; delete saved.imageEngine; // rimossi: resta solo Claude
     if (!saved.imgV2) { saved.imagesOn = false; saved.imgV2 = 1; }
     if (!saved.avatarV4) { if (!saved.avatar || saved.avatar === 'mono') saved.avatar = 'marco'; saved.avatarV4 = 1; }
     if (!saved.avatarV5) { saved.avatar = 'sofia'; if (!saved.tutorName || saved.tutorName === 'Marco') saved.tutorName = 'Sofia'; saved.avatarV5 = 1; }
@@ -254,7 +252,7 @@ export function countImage() {
 /* ---------------- backup ---------------- */
 export async function exportBackup() {
   const s = Object.assign({}, getSettings());
-  delete s.apiKey; delete s.openaiKey; // le chiavi non finiscono mai nei file di backup
+  delete s.apiKey; // le chiavi non finiscono mai nei file di backup
   const books = ((await kv.get('books')) || []).map((b) => ({ id: b.id, title: b.title, author: b.author, words: b.words, pos: b.pos, goal: b.goal || null, maxGp: b.maxGp || 0 }));
   return JSON.stringify({
     format: 'road-to-b1-backup', version: 2, exportedAt: new Date().toISOString(),

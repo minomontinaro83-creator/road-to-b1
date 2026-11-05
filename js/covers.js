@@ -1,7 +1,7 @@
 /* Copertine: quella del file se esiste (EPUB, prima pagina del PDF), altrimenti una copertina
    tipografica subito e, in seconda battuta, una creata dall'IA in modo pertinente al contenuto. */
 import { getSettings } from './store.js';
-import { claudeText, hasAnthropicKey, hasOpenAIKey, hasGeminiKey } from './api.js';
+import { claudeText, hasAnthropicKey } from './api.js';
 import { generateCoverBlob } from './images.js';
 
 const PALETTE = [['#24324A', '#C9A45C'], ['#3A2E3F', '#D9B38C'], ['#1F3B3A', '#E0C98F'], ['#4A2F2B', '#E5C9A0'], ['#2B3A55', '#F0D9A8'], ['#3C3A2A', '#D6C08A']];
@@ -29,10 +29,7 @@ export function typoCover(title, author) {
   wrap(c, author || '', 440).slice(0, 2).forEach((l, i) => c.fillText(l, 300, 620 + i * 42));
   return new Promise((r) => cv.toBlob(r, 'image/jpeg', 0.88));
 }
-export function aiCoverAvailable() {
-  const e = getSettings().imageEngine;
-  return e === 'openai' ? hasOpenAIKey() : e === 'gemini' ? hasGeminiKey() : true;
-}
+export function aiCoverAvailable() { return true; }
 /** copertina pertinente: prima si fa descrivere la scena a Claude, poi si disegna */
 export async function aiCover(title, author, sample) {
   if (!aiCoverAvailable()) return { ok: false, error: 'Nessun motore immagini disponibile.' };

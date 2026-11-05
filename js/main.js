@@ -17,7 +17,6 @@ import { countDue } from './srs.js';
 import { dayStr } from './util.js';
 import { hasAnthropicKey } from './api.js';
 import { prefetchNext } from './engine.js';
-import { autoTutor } from './images.js';
 
 const TABS = [['home', 'home', 'Oggi'], ['review', 'cards', 'Ripasso'], ['tutor', 'chat', 'Tutor'], ['library', 'library', 'Biblioteca'], ['notebook', 'book', 'Quaderno'], ['progress', 'chart', 'Progressi']];
 let screen, nav, cur = 'home';
@@ -116,7 +115,6 @@ async function boot() {
     document.body.dataset.view = 'onboarding';
     showOnboarding(screen, () => { go('home'); });
   } else go('home');
-  if (getSettings().onboarded) setTimeout(() => autoTutor(toast), 1500);
   setInterval(badgeDue, 60000);
   badgeDue();
   if (hasAnthropicKey() && getSettings().onboarded) prefetchNext();
