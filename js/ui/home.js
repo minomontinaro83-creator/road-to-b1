@@ -27,7 +27,7 @@ export function renderHome(host, nav) {
   const day = getDay();
   const goalMs = s.targetMinutes * 60000;
 
-  const tutor = createTutor({ size: 96, onTap: () => { tutor.cheer(); const sh = sheet(h('div', { class: 'stack' }, h('p', { class: 'muted' }, 'Scegli il tuo tutor: umano, cartone o alieno.'), avatarPicker(() => { sh.close(); nav('home'); })), { title: 'Il tuo tutor', wide: true }); } });
+  const tutor = createTutor({ size: 96, onTap: () => { tutor.cheer(); const sh = sheet(h('div', { class: 'stack' }, h('p', { class: 'muted' }, 'Il tuo tutor.'), avatarPicker(() => { sh.close(); nav('home'); })), { title: 'Il tuo tutor', wide: true }); } });
   const hello = bubble(h('b', null, 'Ciao ' + s.userName + '! '), GREET[new Date().getDate() % GREET.length]);
   host.append(h('div', { class: 'home-hero' }, tutor.el, hello));
 

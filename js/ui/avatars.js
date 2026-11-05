@@ -1,27 +1,8 @@
 /* Tutor disegnati: sette personaggi tra cui scegliere. Ogni disegno ha bocca chiusa/aperta/sorriso/pensiero. */
 export const AVATARS = [
-  { id: 'sofia', name: 'Sofia', group: 'Umani', kind: 'photo', photo: 'assets/sofia.png', bg: ['#E9E6E1'] },
-  { id: 'marco', name: 'Marco', group: 'Umani', kind: 'human', bg: ['#DDE3EA'], skin: '#E7BE9C', skinD: '#D2A07C', hair: '#8A8F98', hairStyle: 'short', glasses: 'square', outfit: '#2B3A55', collar: '#F2F3F5' },
-  { id: 'anna', name: 'Anna', group: 'Umani', kind: 'human', bg: ['#E6DFD8'], skin: '#EBC4A4', skinD: '#D6A682', hair: '#3A2A22', hairStyle: 'long', glasses: 'none', outfit: '#7A3B4A', collar: '#F2F3F5', lashes: true },
-  { id: 'john', name: 'John', group: 'Umani', kind: 'human', bg: ['#DAE2DC'], skin: '#F0CBAA', skinD: '#DBAC87', hair: '#5B4636', hairStyle: 'short', glasses: 'none', outfit: '#4A5560', collar: '#F2F3F5', beard: '#5B4636' },
-  { id: 'clara', name: 'Clara', group: 'Umani', kind: 'human', bg: ['#E2E0EA'], skin: '#F2D0B6', skinD: '#DDB191', hair: '#8B4A2B', hairStyle: 'bun', glasses: 'round', outfit: '#2F6B68', collar: '#F2F3F5', lashes: true },
-  { id: 'samuel', name: 'Samuel', group: 'Umani', kind: 'human', bg: ['#E8E2D2'], skin: '#8A5A40', skinD: '#714831', hair: '#1D1613', hairStyle: 'afro', glasses: 'none', outfit: '#33373D', collar: '#E8E2D2' },
-  { id: 'rose', name: 'Rose', group: 'Umani', kind: 'human', bg: ['#E4DDE0'], skin: '#EFCFB6', skinD: '#DAB293', hair: '#C3C7CF', hairStyle: 'bun', glasses: 'round', outfit: '#5E4A6B', collar: '#F2F3F5', lashes: true },
-  { id: 'fox', name: 'Volpe Fox', group: 'Cartoni', kind: 'fox', bg: ['#CFE3E0'] },
-  { id: 'gufo', name: 'Prof. Gufo', group: 'Cartoni', kind: 'owl', bg: ['#EADFC8'] },
-  { id: 'bit', name: 'Bit il robot', group: 'Cartoni', kind: 'robot', bg: ['#D5DEEA'] },
-  { id: 'elena', name: 'Elena', group: 'Umani', kind: 'human', bg: ['#F0DCCB'], skin: '#D9A27E', skinD: '#C18862', hair: '#2B1B17', hairStyle: 'curly', glasses: 'none', outfit: '#D96F3B', collar: '#F2F3F5', lashes: true },
-  { id: 'luca', name: 'Luca', group: 'Umani', kind: 'human', bg: ['#D9E4EE'], skin: '#F0C8A5', skinD: '#DBA983', hair: '#2A2420', hairStyle: 'short', glasses: 'none', outfit: '#3B6EA5', collar: '#2E5686' },
-  { id: 'cosmo', name: 'Cosmo astronauta', group: 'Umani', kind: 'astro', bg: ['#1E2A44'] },
-  { id: 'micio', name: 'Micio', group: 'Cartoni', kind: 'cat', bg: ['#E6DCEB'] },
-  { id: 'orso', name: 'Orso Bruno', group: 'Cartoni', kind: 'bear', bg: ['#DDE8D4'] },
-  { id: 'draco', name: 'Draco', group: 'Cartoni', kind: 'dragon', bg: ['#F1E3C9'] },
-  { id: 'pip', name: 'Pip', group: 'Alieni', kind: 'pip', bg: ['#C9D6EE'] },
-  { id: 'zog', name: 'Zog', group: 'Alieni', kind: 'alien', bg: ['#D2D9EE'] },
-  { id: 'nebula', name: 'Nebula', group: 'Alieni', kind: 'cyclops', bg: ['#E0D7F0'] },
-  { id: 'mono', name: 'Solo iniziale', group: 'Minimale', kind: 'mono', bg: ['#2B3442'] }
+  { id: 'sofia', name: 'Sofia', group: 'Umani', kind: 'photo', photo: 'assets/sofia.png', bg: ['#E9E6E1'] }
 ];
-export const AVATAR_GROUPS = ['Umani', 'Cartoni', 'Alieni', 'Minimale'];
+export const AVATAR_GROUPS = ['Umani'];
 export const avatarById = (id) => AVATARS.find((a) => a.id === id) || AVATARS[0];
 
 const hairBack = (a) => {
