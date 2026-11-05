@@ -3,7 +3,7 @@ import { h, sheet, toast, say, speakBtn, clear } from './dom.js';
 
 export const HL_COLORS = ['', '#F5D76E', '#8FD19E', '#8CC4F0', '#F2A6C0'];
 import { state, getSettings, setSettings } from '../store.js';
-import { tokenize, findSpans, normText, esc } from '../util.js';
+import { tokenize, findSpans, normText, esc, fmtPron } from '../util.js';
 import { speak, stopSpeech, isSpeaking, prefetchSpeech } from '../tts.js';
 import { lookupWord, translateSentences } from '../engine.js';
 import { addWordCard, markKnown, findCard } from '../cards.js';
@@ -63,7 +63,7 @@ export async function openWordPopup(word, sentence, ep, onChange, idx = null, on
   }
   if (r.surface && normText(r.surface) !== normText(word)) { wpWord.textContent = r.surface; spoken = r.surface; say(r.surface); }
   meaning.textContent = r.it + (r.pos ? '  ·  ' + r.pos : '');
-  if (s.phonetics !== 'off' && r.ipa) ipa.textContent = '/' + r.ipa + '/';
+  if (s.phonetics !== 'off' && r.ipa) ipa.textContent = fmtPron(r.ipa);
   const target = (r.surface || (r.base && normText(r.base) !== normText(word) ? r.base : word)).trim();
   const existing = cardFor(target) || cardFor(word);
   if (existing) {
@@ -118,7 +118,7 @@ export function mountReader(host, content, opts = {}) {
       const dlg = /^[\s"“'‘]/.test(text);
       const a = opts.ann ? opts.ann.get(i) : null;
       const el = h('span', { class: 'sent' + (dlg ? ' dlg' : '') + (a && a.bm ? ' bm' : '') + (a && a.col ? ' hl hl' + a.col : '') + (a && a.note ? ' hasnote' : ''), 'data-i': i }, body,
-        showIpa && sent.ipa ? h('span', { class: 'sipa' }, '/' + sent.ipa + '/') : null,
+        showIpa && sent.ipa ? h('span', { class: 'sipa' }, fmtPron(sent.ipa)) : null,
         showTr && sent.it ? h('span', { class: 'strans' }, sent.it) : null);
       sentEls.push(el);
       para.append(el, ' ');
@@ -146,8 +146,22 @@ export function mountReader(host, content, opts = {}) {
     });
   }
 
+  function clearWord() { if (root) root.querySelectorAll('.speak').forEach((e) => e.classList.remove('speak')); }
+  /** segue la parola letta: la illumina man mano */
+  function wordTracker(i) {
+    const els = Array.from(sentEls[i].querySelectorAll('.w, .g'));
+    const clean = String(content.sentences[i].en || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    let cur = 0; const starts = els.map((el) => { const k = clean.indexOf(el.textContent, cur); if (k >= 0) { cur = k + el.textContent.length; return k; } return cur; });
+    let last = -1;
+    return (ci) => {
+      let j = -1; for (let k = 0; k < starts.length; k++) { if (starts[k] <= ci) j = k; else break; }
+      if (j < 0 || j === last) return;
+      last = j; clearWord(); els[j].classList.add('speak');
+    };
+  }
+
   function stopScene() {
-    playId++; stopSpeech();
+    playId++; stopSpeech(); clearWord();
     sentEls.forEach((e) => e.classList.remove('playing'));
     if (barPlay) barPlay.textContent = '▶';
   }
@@ -167,7 +181,8 @@ export function mountReader(host, content, opts = {}) {
       if (onProgress) onProgress(i, content.sentences.length);
       if (barProg) barProg.style.width = Math.round(((i + 1) / content.sentences.length) * 100) + '%';
       if (content.sentences[i + 1]) prefetchSpeech(content.sentences[i + 1].en);
-      const r = await speak(content.sentences[i].en);
+      clearWord();
+      const r = await speak(content.sentences[i].en, { onWord: wordTracker(i) });
       if (id !== playId || (r && r.cancelled)) return { ok: true, cancelled: true };
       if (r && !r.ok) { stopScene(); toast('Non riesco a riprodurre la voce. Controlla il volume o il motore voce nelle impostazioni.', 'err'); return r; }
     }

@@ -6,7 +6,7 @@ import { mountReader } from './reader.js';
 import { cardState, INTERVALS } from '../srs.js';
 import { removeCard } from '../cards.js';
 import { grammarName } from '../levels.js';
-import { dayStr, diffDays, normText } from '../util.js';
+import { dayStr, diffDays, normText, fmtPron } from '../util.js';
 import { fmtDate } from './dom.js';
 import { seasonInfo } from '../story.js';
 import { showRule } from './test.js';
@@ -59,7 +59,7 @@ async function cardSheet(c, refresh) {
   const body = h('div', { class: 'stack' });
   if (c.img) { const u = await imgUrl(c.img); if (u) body.append(h('img', { class: 'card-photo', src: u, alt: '' })); }
   if (c.kind === 'error') body.append(h('div', { class: 'q-wrong' }, c.wrong), h('div', { class: 'ans' }, c.right, ' ', speakBtn(c.right)), c.expl ? h('p', null, c.expl) : null, c.rule ? h('button', { class: 'btn ghost', onclick: () => showRule(c.rule, c.wrong, c.right) }, 'Spiega la regola') : null);
-  else body.append(h('div', { class: 'ans' }, c.en, ' ', speakBtn(c.en)), c.ipa ? h('div', { class: 'ipa' }, '/' + c.ipa + '/') : null, h('div', null, c.it), c.ctx ? h('div', { class: 'q-ctx' }, '“' + c.ctx + '”') : null);
+  else body.append(h('div', { class: 'ans' }, c.en, ' ', speakBtn(c.en)), c.ipa ? h('div', { class: 'ipa' }, fmtPron(c.ipa)) : null, h('div', null, c.it), c.ctx ? h('div', { class: 'q-ctx' }, '“' + c.ctx + '”') : null);
   const t = dayStr();
   body.append(h('div', { class: 'muted small' }, 'Livello ' + (c.stage + 1) + ' di ' + INTERVALS.length + ' · riviste ' + c.reviews + ' volte · sbagliate ' + c.lapses + ' · prossimo ripasso: ' + (c.due <= t ? 'oggi' : fmtDate(c.due)) + (c.cons ? ' · consolidata ✔' : '')));
   body.append(h('button', { class: 'btn danger small', onclick: async () => { if (await confirmSheet('Eliminare questa carta?', 'Elimina', true)) { removeCard(c.id); sh.close(); refresh(); toast('Carta eliminata'); } } }, 'Elimina'));

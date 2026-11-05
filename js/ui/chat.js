@@ -9,7 +9,7 @@ import { markActive } from '../progress.js';
 import { speak } from '../tts.js';
 import { showRule } from './test.js';
 import { openWordPopup } from './reader.js';
-import { tokenize } from '../util.js';
+import { tokenize, fmtPron } from '../util.js';
 
 const GREETING = (name, tutor) => ({
   role: 'assistant',
@@ -62,7 +62,7 @@ export function mountChat(host, opts = {}) {
     const trBtn = h('button', { class: 'sbtn tr', onclick: () => { tr.classList.toggle('show'); } }, 'IT');
     bub.append(bubble(
       h('div', { class: 'btext' }, words),
-      s.phonetics === 'sentence' && last.ipa ? h('div', { class: 'sipa' }, '/' + last.ipa + '/') : null,
+      s.phonetics === 'sentence' && last.ipa ? h('div', { class: 'sipa' }, fmtPron(last.ipa)) : null,
       last.it ? tr : null,
       h('div', { class: 'row' }, h('button', { class: 'icon-btn', onclick: () => say(last.text), 'aria-label': 'Ascolta' }, icon('speak', 20)), last.it ? trBtn : null)
     ));

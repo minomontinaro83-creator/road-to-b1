@@ -11,7 +11,7 @@ import { ipaSentences, pageLesson } from '../engine.js';
 import { addWordCard, findCard } from '../cards.js';
 import { cardKey } from '../srs.js';
 import { stopSpeech } from '../tts.js';
-import { dayStr, addDays } from '../util.js';
+import { dayStr, addDays, fmtPron } from '../util.js';
 
 /* ---------------- archivio ---------------- */
 export const listBooks = async () => (await kv.get('books')) || [];
@@ -252,7 +252,7 @@ export async function renderBook(host, id, go) {
     tut.setMood('happy'); tut.talkText(L.tutor_intro_it);
     const det = (title, open, ...kids) => h('details', Object.assign({ class: 'card lesson-sec' }, open ? { open: true } : {}), h('summary', null, title), h('div', { class: 'stack' }, kids));
     const gram = (L.grammar || []).map((g) => h('div', { class: 'lg' }, h('div', null, h('b', null, g.rule_it)), h('div', { class: 'q-ctx' }, '“' + g.example_en + '” ', speakBtn(g.example_en, { small: true })), h('p', null, g.explain_it)));
-    const pron = (L.pronunciation || []).map((x) => h('div', { class: 'sugg' }, h('div', null, h('b', null, x.word), h('span', { class: 'muted' }, '  /' + String(x.ipa).replace(/^\/|\/$/g, '') + '/'), h('div', null, x.tip_it)), speakBtn(x.word, { small: true })));
+    const pron = (L.pronunciation || []).map((x) => h('div', { class: 'sugg' }, h('div', null, h('b', null, x.word), h('span', { class: 'muted' }, '  ' + fmtPron(x.ipa)), h('div', null, x.tip_it)), speakBtn(x.word, { small: true })));
     const btns = [];
     const words = (L.words || []).map((it) => {
       const sentence = (content.sentences.find((s) => s.en.toLowerCase().includes(it.surface.toLowerCase())) || {}).en || '';
@@ -262,7 +262,7 @@ export async function renderBook(host, id, go) {
       if (findCard(cardKey(it.surface.trim().split(/\s+/).length > 1 || kind === 'phrase' ? 'phrase' : 'word', { en: it.surface }))) done();
       btn.onclick = () => { addWordCard({ en: it.surface, it: it.it, ipa: it.ipa, ctx: sentence, kind, source: 'libro' }); done(); if (reader) reader.refresh(); };
       btns.push(btn);
-      return h('div', { class: 'sugg' }, h('div', null, h('b', null, it.surface), it.ipa ? h('span', { class: 'muted' }, '  /' + String(it.ipa).replace(/^\/|\/$/g, '') + '/') : null, h('div', null, it.it)), h('div', { class: 'row' }, speakBtn(it.surface, { small: true }), btn));
+      return h('div', { class: 'sugg' }, h('div', null, h('b', null, it.surface), it.ipa ? h('span', { class: 'muted' }, '  ' + fmtPron(it.ipa)) : null, h('div', null, it.it)), h('div', { class: 'row' }, speakBtn(it.surface, { small: true }), btn));
     });
     clear(lessonBox);
     lessonBox.append(

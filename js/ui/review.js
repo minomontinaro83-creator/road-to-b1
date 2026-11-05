@@ -2,7 +2,7 @@
 import { h, clear, say, speakBtn, toast, confetti, vibrate } from './dom.js';
 import { state, getSettings } from '../store.js';
 import { reviewQueue, answerCard } from '../cards.js';
-import { answerMatches, normText } from '../util.js';
+import { answerMatches, normText, fmtPron } from '../util.js';
 import { markActive } from '../progress.js';
 import { grammarName } from '../levels.js';
 import { imgUrl, generateCardImage } from '../images.js';
@@ -79,7 +79,7 @@ export function runReview(host, { queue, onDone, title = 'Ripasso' } = {}) {
       box.append(imgBox, h('div', { class: 'q-label' }, 'Come si dice in inglese?'), h('div', { class: 'q-it' }, card.it || card.en), gap ? h('div', { class: 'q-ctx' }, gap) : null);
       answerArea(card, card.en, 'Scrivi in inglese…', () => h('div', { class: 'reveal' },
         h('div', { class: 'ans' }, card.en, ' ', speakBtn(card.en, { small: true })),
-        card.ipa && getSettings().phonetics !== 'off' ? h('div', { class: 'ipa' }, '/' + card.ipa + '/') : null,
+        card.ipa && getSettings().phonetics !== 'off' ? h('div', { class: 'ipa' }, fmtPron(card.ipa)) : null,
         card.ctx ? h('div', { class: 'q-ctx' }, '“' + card.ctx + '”') : null));
     } else if (card.kind === 'error') {
       box.append(h('div', { class: 'q-label' }, 'Correggi la frase'), h('div', { class: 'q-wrong' }, card.wrong));
