@@ -441,3 +441,5 @@ details.acc[open]>summary::after{transform:rotate(-90deg)}
 @keyframes jawtalk{0%,100%{transform:translateY(0)}50%{transform:translateY(2.4px) scaleY(1.02)}}
 .tutor-svg.nodding .jaw{transform:translateY(-.6px) scale(1.06,1.01)}
 .tutor-svg.displeased .jaw{transform:translateY(.8px) scale(.97,1)}
+
+.w.speak,.g.speak{background:color-mix(in srgb,var(--accent) 30%,transparent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent);border-radius:4px;transition:background .08s}
